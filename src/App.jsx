@@ -1,37 +1,58 @@
 
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Link
-} from 'react-router-dom';
+import { useEffect, useState } from "react";
 
-import Home from './pages/Home';
-import About from './pages/About';
-import Contact from './pages/Contact';
+export default function App() {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-function App() {
+  useEffect(() => {
+    async function fetchStudents() {
+      try {
+        const response = await fetch(
+          "https://jsonplaceholder.typicode.com/users"
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch students");
+        }
+
+        const data = await response.json();
+
+        setStudents(
+          data.map((user) => ({
+            id: user.id,
+            name: user.name,
+            email: user.email
+          }))
+        );
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStudents();
+  }, []);
+
   return (
-    <BrowserRouter>
-      <div className="app">
-        <nav className="navbar">
-          <h2>Practical 11</h2>
+    <div>
+      <h1>Student List</h1>
 
-          <div className="nav-links">
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-            <Link to="/contact">Contact</Link>
+      {loading && <p>Loading students...</p>}
+
+      {error && <p>Error: {error}</p>}
+
+      {!loading && !error && (
+        students.map((student) => (
+          <div key={student.id}>
+            <h3>{student.name}</h3>
+            <p>Email: {student.email}</p>
+            <hr />
           </div>
-        </nav>
-
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+        ))
+      )}
+    </div>
   );
 }
-
-export default App;
